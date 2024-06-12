@@ -1,8 +1,10 @@
 use std::{fmt::Display, hash::{Hash, Hasher}, ops::{Index, IndexMut}, str::FromStr};
 
+use serde::{Deserialize, Serialize};
+
 const ID_SIZE: usize = 8;
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub struct Id {
     id: [u8; ID_SIZE]
 }

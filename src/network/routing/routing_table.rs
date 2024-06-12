@@ -30,13 +30,11 @@ impl RoutingTable {
         // short jump
         let mut closest_peer = None;
         let mut closest_distance = self.node_id.distance(target);
-        for leaf in &self.leaves {
-            if let Some(leaf) = leaf {
-                let distance = leaf.distance(target);
-                if distance < closest_distance {
-                    closest_distance = distance;
-                    closest_peer = Some(leaf);
-                }
+        for leaf in self.leaves.iter().flatten() {
+            let distance = leaf.distance(target);
+            if distance < closest_distance {
+                closest_distance = distance;
+                closest_peer = Some(leaf);
             }
         }
 
@@ -67,10 +65,11 @@ mod tests {
     #[test]
     fn test_short_jump() {
         let node_id = Id::from_str("2000-0000-0000-0000").unwrap();
+        let addr = "0.0.0.0:4848".parse().unwrap();
         let mut leaves = [None; HALF_LEAVES*2];
-        leaves[HALF_LEAVES] = Some(Peer::new(Id::from_str("1000-0000-0000-0000").unwrap()));
+        leaves[HALF_LEAVES] = Some(Peer::raw(Id::from_str("1000-0000-0000-0000").unwrap(),addr));
         let mut table_rows = [RoutingTableRow::empty(); ROWS];
-        table_rows[0][0] = Some(Peer::new(Id::from_str("0000-0000-0000-0000").unwrap()));
+        table_rows[0][0] = Some(Peer::raw(Id::from_str("0000-0000-0000-0000").unwrap(),addr));
         let table = RoutingTable {
             node_id,
             leaves,
@@ -78,18 +77,19 @@ mod tests {
         };
 
         let target = Id::from_str("1200-1000-0000-0000").unwrap();
-        assert_eq!(table.route(&target), Some(&Peer::new(Id::from_str("1000-0000-0000-0000").unwrap())));
+        assert_eq!(table.route(&target), Some(&Peer::raw(Id::from_str("1000-0000-0000-0000").unwrap(),addr)));
     }
 
     #[test]
     fn test_long_jump() {
         let node_id = Id::from_str("2000-0000-0000-0000").unwrap();
+        let addr = "0.0.0.0:4848".parse().unwrap();
         let mut table_rows = [RoutingTableRow::empty(); ROWS];
-        table_rows[0][0] = Some(Peer::new(Id::from_str("0000-0000-0000-0000").unwrap()));
-        table_rows[0][1] = Some(Peer::new(Id::from_str("1000-0000-0000-0000").unwrap()));
-        table_rows[1][1] = Some(Peer::new(Id::from_str("2100-0000-0000-0000").unwrap()));
-        table_rows[1][2] = Some(Peer::new(Id::from_str("2200-0000-0000-0000").unwrap()));
-        table_rows[2][2] = Some(Peer::new(Id::from_str("2020-0000-0000-0000").unwrap()));
+        table_rows[0][0] = Some(Peer::raw(Id::from_str("0000-0000-0000-0000").unwrap(),addr));
+        table_rows[0][1] = Some(Peer::raw(Id::from_str("1000-0000-0000-0000").unwrap(),addr));
+        table_rows[1][1] = Some(Peer::raw(Id::from_str("2100-0000-0000-0000").unwrap(),addr));
+        table_rows[1][2] = Some(Peer::raw(Id::from_str("2200-0000-0000-0000").unwrap(),addr));
+        table_rows[2][2] = Some(Peer::raw(Id::from_str("2020-0000-0000-0000").unwrap(),addr));
         let table = RoutingTable {
             node_id,
             leaves: [None; HALF_LEAVES*2],
@@ -97,16 +97,16 @@ mod tests {
         };
 
         let target = Id::from_str("1200-1000-0000-0000").unwrap();
-        assert_eq!(table.route(&target), Some(&Peer::new(Id::from_str("1000-0000-0000-0000").unwrap())));
+        assert_eq!(table.route(&target), Some(&Peer::raw(Id::from_str("1000-0000-0000-0000").unwrap(),addr)));
 
         let target = Id::from_str("2100-1000-0000-0000").unwrap();
-        assert_eq!(table.route(&target), Some(&Peer::new(Id::from_str("2100-0000-0000-0000").unwrap())));
+        assert_eq!(table.route(&target), Some(&Peer::raw(Id::from_str("2100-0000-0000-0000").unwrap(),addr)));
 
         let target = Id::from_str("2200-1000-0000-0000").unwrap();
-        assert_eq!(table.route(&target), Some(&Peer::new(Id::from_str("2200-0000-0000-0000").unwrap())));
+        assert_eq!(table.route(&target), Some(&Peer::raw(Id::from_str("2200-0000-0000-0000").unwrap(),addr)));
 
         let target = Id::from_str("2020-1000-0000-0000").unwrap();
-        assert_eq!(table.route(&target), Some(&Peer::new(Id::from_str("2020-0000-0000-0000").unwrap())));
+        assert_eq!(table.route(&target), Some(&Peer::raw(Id::from_str("2020-0000-0000-0000").unwrap(),addr)));
 
         let target = Id::from_str("2000-0000-0000-0000").unwrap();
         assert_eq!(table.route(&target), None);

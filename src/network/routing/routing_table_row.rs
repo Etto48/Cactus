@@ -1,11 +1,13 @@
 use std::ops::{Index, IndexMut};
 
+use serde::{Deserialize, Serialize};
+
 use crate::network::peer::Peer;
 
 const ROW_SIZE: usize = 0x10;
 
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct RoutingTableRow {
     peers: [Option<Peer>; ROW_SIZE]
 }
