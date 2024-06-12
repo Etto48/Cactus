@@ -20,7 +20,9 @@ pub enum Packet {
 
     /// Send this to a peer that required to join the network and you received a PeerIsJoining packet
     JoinResponse {
+        applicant_id: Id,
         routing_table_row: RoutingTableRow,
+        leaves: Vec<Peer>,
         hop_count: u8,
     },
 

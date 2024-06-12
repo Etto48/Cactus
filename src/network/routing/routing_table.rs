@@ -14,6 +14,57 @@ pub struct RoutingTable {
 
 impl RoutingTable {
 
+    /// Create a new empty routing table for the given node.
+    pub fn empty(node_id: Id) -> Self {
+        Self {
+            node_id,
+            leaves: [None; HALF_LEAVES*2],
+            table_rows: [RoutingTableRow::empty(); ROWS],
+        }
+    }
+
+    /// Set a row of the routing table.
+    /// If the row is out of bounds, it is ignored.
+    pub fn set_row(&mut self, row: RoutingTableRow, index: usize) {
+        if index < ROWS {
+            self.table_rows[index] = row;
+            self.table_rows[index][self.node_id.get_digit(index)] = None;
+        }
+    }
+
+    /// Add leaves to the routing table.
+    pub fn add_leaves(&mut self, leaves: Vec<Peer>) {
+        for leaf in leaves {
+            if leaf.id() < self.node_id {
+                for i in 0..HALF_LEAVES {
+                    if self.leaves[i].is_none() {
+                        self.leaves[i] = Some(leaf);
+                        break;
+                    }
+                }
+            }
+            else if leaf.id() > self.node_id {
+                for i in HALF_LEAVES..HALF_LEAVES*2 {
+                    if self.leaves[i].is_none() {
+                        self.leaves[i] = Some(leaf);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /// Get the leaves of the routing table as a vector.
+    pub fn leaves_to_vec(&self) -> Vec<Peer> {
+        self.leaves.iter().flatten().cloned().collect()
+    }
+
+    /// Get the row of the routing table at the given index.
+    /// If the index is out of bounds, an empty row is returned.
+    pub fn row(&self, index: usize) -> RoutingTableRow {
+        self.table_rows.get(index).unwrap_or(&RoutingTableRow::empty()).clone()
+    }
+
     /// Find the next hop to reach the closest peer to the target.
     /// If the result is None, the closest peer is the current node or the network has failed.
     pub fn route(&self, target: &Id) -> Option<&Peer> {

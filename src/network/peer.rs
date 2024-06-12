@@ -26,4 +26,12 @@ impl Peer {
     pub fn distance(&self, other: &Id) -> Id {
         self.id.distance(other)
     }
+
+    pub fn id(&self) -> Id {
+        self.id
+    }
+
+    pub fn addr(&self) -> SocketAddr {
+        self.addr
+    }
 }
